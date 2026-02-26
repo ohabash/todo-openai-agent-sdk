@@ -21,6 +21,26 @@
       "completed": false
     },
     {
+      "id": 9,
+      "title": "blue",
+      "completed": true
+    },
+    {
+      "id": 8,
+      "title": "white",
+      "completed": true
+    },
+    {
+      "id": 7,
+      "title": "red",
+      "completed": true
+    },
+    {
+      "id": 4,
+      "title": "corn",
+      "completed": true
+    },
+    {
       "id": 6,
       "title": "pizza",
       "completed": true
@@ -29,11 +49,6 @@
       "id": 5,
       "title": "grapes",
       "completed": true
-    },
-    {
-      "id": 4,
-      "title": "corn",
-      "completed": false
     },
     {
       "id": 3,

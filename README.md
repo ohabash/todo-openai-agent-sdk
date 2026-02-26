@@ -8,7 +8,10 @@ Create a `.env` file with your OpenAI API key:
 
 ```
 OPENAI_API_KEY=sk-...
+TRACING=true
 ```
+
+Set `TRACING=true` to show tool call traces in the chat.
 
 ## Scripts
 

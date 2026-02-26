@@ -6,10 +6,13 @@ import { Agent, addTraceProcessor, Runner, run, setTracingDisabled, tool } from 
 import { chatBubble, createPromptInput } from "./terminal-components";
 import { createChatTraceProcessor, ensureThinkingRemoved, setClearThinking } from "./tracing/chat-trace-processor";
 
-// trace tool calls and major events in chat (force on; SDK disables when NODE_ENV=test)
-setTracingDisabled(false);
-addTraceProcessor(createChatTraceProcessor());
-const runner = new Runner({ tracingDisabled: false });
+const TRACING_ENABLED = process.env.TRACING === "true";
+
+if (TRACING_ENABLED) {
+  setTracingDisabled(false);
+  addTraceProcessor(createChatTraceProcessor());
+}
+const runner = new Runner({ tracingDisabled: !TRACING_ENABLED });
 import { StateService, TodoService } from "./services";
 import { DEFAULT_APP_STATE } from "./types";
 
