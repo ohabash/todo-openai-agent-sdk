@@ -1,5 +1,7 @@
 # Todo Agent
 
+[![Portfolio](https://img.shields.io/badge/Portfolio-omarhabash.com-blue?style=for-the-badge)](https://omarhabash.com/?todoagent)
+
 CLI todo list assistant powered by OpenAI Agents.
 
 ## Setup

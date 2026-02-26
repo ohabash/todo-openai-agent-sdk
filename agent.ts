@@ -134,7 +134,7 @@ function prompt(): void {
     // handle exit
     const shouldExit = !message || message.toLowerCase() === "exit" || message.toLowerCase() === "quit";
     if (shouldExit) {
-      console.log("Goodbye!");
+      console.log("\n" + (" Thanks for using Todo Agent! " as any).bgCyan.black.bold + "\n" + ("See you next time. 👋" as any).dim + "\n" + ("https://omarhabash.com/?todoagent" as any).dim + "\n");
       promptInput.rl.close();
       process.exit(0);
     }
