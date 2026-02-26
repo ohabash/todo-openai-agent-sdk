@@ -1,0 +1,74 @@
+{
+  "convo": [
+    {
+      "role": "user",
+      "content": "Hello, how are you?"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm good, thank you!"
+    }
+  ],
+  "todos": [
+    {
+      "id": 4,
+      "title": "Email Team",
+      "completed": false
+    },
+    {
+      "id": 6,
+      "title": "nap",
+      "completed": false
+    },
+    {
+      "id": 8,
+      "title": "excersize",
+      "completed": false
+    },
+    {
+      "id": 10,
+      "title": "haircut",
+      "completed": false
+    },
+    {
+      "id": 12,
+      "title": "walk dog",
+      "completed": false
+    },
+    {
+      "id": 11,
+      "title": "feed dog",
+      "completed": false
+    },
+    {
+      "id": 5,
+      "title": "clean",
+      "completed": false
+    },
+    {
+      "id": 3,
+      "title": "Buy Milk",
+      "completed": false
+    },
+    {
+      "id": 7,
+      "title": "eat",
+      "completed": true
+    },
+    {
+      "id": 1,
+      "title": "Buy groceries",
+      "completed": true
+    },
+    {
+      "id": 2,
+      "title": "walk the dogs",
+      "completed": true
+    },
+    {
+      "id": 9,
+      "title": "haircut at 10am",
+      "completed": true
+    }
+  ]
+}
