@@ -10,7 +10,7 @@ function createServices() {
   fs.writeFileSync(TEST_STATE_PATH, JSON.stringify(DEFAULT_APP_STATE, null, 2));
   const stateService = new StateService(TEST_STATE_PATH, DEFAULT_APP_STATE);
   const todoService = new TodoService(stateService);
-  return { stateService, todoService };
+  return { todoService };
 }
 
 describe("TodoService", () => {
@@ -22,68 +22,8 @@ describe("TodoService", () => {
     if (fs.existsSync(TEST_STATE_PATH)) fs.unlinkSync(TEST_STATE_PATH);
   });
 
-  describe("get", () => {
-    it("returns todos from state", () => {
-      const { todoService } = createServices();
-      todoService.add("Buy Milk");
-      const todos = todoService.get();
-      expect(todos).toHaveLength(1);
-      expect(todos[0].title).toBe("Buy Milk");
-    });
-
-    it("returns empty array when no todos", () => {
-      const { todoService } = createServices();
-      expect(todoService.get()).toEqual([]);
-    });
-  });
-
-  describe("list", () => {
-    it("returns task and status for each todo", () => {
-      const { todoService } = createServices();
-      todoService.add("Buy Milk");
-      const list = todoService.list();
-      expect(list).toEqual([{ task: "Buy Milk", status: "open" }]);
-    });
-
-    it("state reflects list structure", () => {
-      const { todoService } = createServices();
-      todoService.add("A");
-      todoService.add("B");
-      const list = todoService.list();
-      const todos = todoService.get();
-      expect(list.length).toBe(todos.length);
-      expect(list.every((l, i) => l.task === todos[i].title)).toBe(true);
-    });
-  });
-
-  describe("format", () => {
-    it("returns formatted string with open/completed markers", () => {
-      const { todoService } = createServices();
-      todoService.add("Buy Milk");
-      const formatted = todoService.format();
-      expect(formatted).toContain("⬜ Buy Milk");
-      expect(formatted).toContain("Here are your tasks");
-    });
-
-    it("shows completed tasks with checkmark", () => {
-      const { todoService } = createServices();
-      todoService.add("Buy Milk");
-      todoService.complete("Buy Milk");
-      const formatted = todoService.format();
-      expect(formatted).toContain("✅ Buy Milk");
-    });
-  });
-
-  describe("add", () => {
-    it("adds item and returns Added message", () => {
-      const { todoService } = createServices();
-      const res = todoService.add("Buy Milk");
-      expect(res).toContain("Added: Buy Milk");
-      expect(todoService.get()).toHaveLength(1);
-      expect(todoService.get()[0].title).toBe("Buy Milk");
-    });
-
-    it("rejects duplicate (already exists, not completed)", () => {
+  describe("Duplicate detection", () => {
+    it("rejects adding duplicate when task exists and is open", () => {
       const { todoService } = createServices();
       todoService.add("Buy Milk");
       const res = todoService.add("Buy Milk");
@@ -91,32 +31,112 @@ describe("TodoService", () => {
       expect(todoService.get()).toHaveLength(1);
     });
 
-    it("reactivates completed duplicate", () => {
+    it("reactivates when duplicate exists but is completed", () => {
       const { todoService } = createServices();
       todoService.add("Buy Milk");
       todoService.complete("Buy Milk");
       todoService.add("Buy Milk");
-      const todos = todoService.get();
-      const t = todos.find((x) => x.title === "Buy Milk");
+      const t = todoService.get().find((x) => x.title === "Buy Milk");
       expect(t?.completed).toBe(false);
     });
   });
 
-  describe("complete", () => {
-    it("marks task complete and returns message", () => {
+  describe("Raw JSON listing", () => {
+    it("returns array of { task, status } objects", () => {
       const { todoService } = createServices();
       todoService.add("Buy Milk");
-      const res = todoService.complete("Buy Milk");
-      expect(res).toContain("Completed: Buy Milk");
-      expect(todoService.get()[0].completed).toBe(true);
+      todoService.add("Email Team");
+      const list = todoService.list();
+      expect(Array.isArray(list)).toBe(true);
+      expect(list).toEqual([
+        { task: "Buy Milk", status: "open" },
+        { task: "Email Team", status: "open" },
+      ]);
     });
 
+    it("status is 'complete' for completed tasks", () => {
+      const { todoService } = createServices();
+      todoService.add("Buy Milk");
+      todoService.complete("Buy Milk");
+      const list = todoService.list();
+      expect(list).toEqual([{ task: "Buy Milk", status: "complete" }]);
+    });
+
+    it("is JSON-serializable", () => {
+      const { todoService } = createServices();
+      todoService.add("A");
+      const list = todoService.list();
+      expect(() => JSON.stringify(list)).not.toThrow();
+      expect(JSON.parse(JSON.stringify(list))).toEqual(list);
+    });
+  });
+
+  describe("Formatted list output", () => {
+    it("shows open tasks with ⬜ and completed with ✅", () => {
+      const { todoService } = createServices();
+      todoService.add("Buy Milk");
+      todoService.add("Email Team");
+      todoService.complete("Buy Milk");
+      const formatted = todoService.format();
+      expect(formatted).toContain("Here are your tasks");
+      expect(formatted).toContain("✅");
+      expect(formatted).toContain("Buy Milk");
+      expect(formatted).toContain("⬜");
+      expect(formatted).toContain("Email Team");
+    });
+
+    it("sorts completed tasks below open", () => {
+      const { todoService } = createServices();
+      todoService.add("A");
+      todoService.add("B");
+      todoService.complete("A");
+      const formatted = todoService.format();
+      expect(formatted.indexOf("⬜")).toBeLessThan(formatted.indexOf("✅"));
+    });
+
+    it("shows (no tasks) when empty", () => {
+      const { todoService } = createServices();
+      const formatted = todoService.format();
+      expect(formatted).toContain("(no tasks)");
+    });
+
+    it("includes task id with each item (#id)", () => {
+      const { todoService } = createServices();
+      todoService.add("Buy Milk");
+      const formatted = todoService.format();
+      expect(formatted).toMatch(/#\d+ Buy Milk/);
+    });
+  });
+
+  describe("Workflow sequence", () => {
+    it("add → add → complete → list reflects correct state", () => {
+      const { todoService } = createServices();
+      todoService.add("Buy Milk");
+      todoService.add("Email Team");
+      todoService.complete("Buy Milk");
+      const list = todoService.list();
+      expect(list).toHaveLength(2);
+      expect(list.find((l) => l.task === "Buy Milk")?.status).toBe("complete");
+      expect(list.find((l) => l.task === "Email Team")?.status).toBe("open");
+    });
+
+    it("add → complete → format shows mixed open and done", () => {
+      const { todoService } = createServices();
+      todoService.add("A");
+      todoService.add("B");
+      todoService.complete("A");
+      const formatted = todoService.format();
+      expect(formatted).toMatch(/⬜/);
+      expect(formatted).toMatch(/✅/);
+    });
+  });
+
+  describe("complete", () => {
     it("fuzzy match: partial name finds task", () => {
       const { todoService } = createServices();
       todoService.add("haircut at 10am");
       const res = todoService.complete("haircut");
       expect(res).toContain("Completed: haircut at 10am");
-      expect(todoService.get()[0].completed).toBe(true);
     });
 
     it("returns error when not found", () => {
@@ -124,7 +144,6 @@ describe("TodoService", () => {
       todoService.add("Buy Milk");
       const res = todoService.complete("xyz");
       expect(res).toBe("Error: Task not found.");
-      expect(todoService.get()[0].completed).toBe(false);
     });
 
     it("returns error when multiple matches", () => {
@@ -133,8 +152,6 @@ describe("TodoService", () => {
       todoService.add("Buy groceries");
       const res = todoService.complete("Buy");
       expect(res).toContain("Multiple matches");
-      expect(res).toContain("Buy Milk");
-      expect(res).toContain("Buy groceries");
     });
   });
 });

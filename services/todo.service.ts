@@ -62,17 +62,17 @@ export class TodoService {
 
     // exists and not completed
     if (todos.some((t) => t.title.toLowerCase() === title.toLowerCase() && !t.completed)) {
-      return `warning: ⚠️  Item already "${title}" exists.\n\n${this.format()}`;
+      return `warning: ⚠️  Item already "${title}" existed.\n\n${this.format()}`;
     }
 
-    // exists and completed
+    // existed and completed
     if (todos.some((t) => t.title.toLowerCase() === title.toLowerCase() && t.completed)) {
       let todo = todos.find((t) => t.title.toLowerCase() === title.toLowerCase() && t.completed);
       if (todo) {
         todo.completed = false;
         this.stateService.update({ todos });
       }
-      return `warning: ⚠️  The completed item "${title}" already exists. I went ahead and activated it again!\n\n${this.format()}`;
+      return `warning: ⚠️  The completed item "${title}" already existed. I went ahead and activated it again!\n\n${this.format()}`;
     }
 
     const nextId = todos.reduce((max, t) => Math.max(max, t.id), 0) + 1;
