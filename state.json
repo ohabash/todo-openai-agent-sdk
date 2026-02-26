@@ -11,74 +11,34 @@
   ],
   "todos": [
     {
-      "id": 4,
-      "title": "Email Team",
+      "id": 2,
+      "title": "milk",
+      "completed": false
+    },
+    {
+      "id": 1,
+      "title": "rice",
       "completed": false
     },
     {
       "id": 6,
-      "title": "nap",
-      "completed": false
-    },
-    {
-      "id": 8,
-      "title": "excersize",
-      "completed": false
-    },
-    {
-      "id": 10,
-      "title": "haircut",
-      "completed": false
-    },
-    {
-      "id": 12,
-      "title": "walk dog",
-      "completed": false
-    },
-    {
-      "id": 11,
-      "title": "feed dog",
-      "completed": false
+      "title": "pizza",
+      "completed": true
     },
     {
       "id": 5,
-      "title": "clean",
+      "title": "grapes",
+      "completed": true
+    },
+    {
+      "id": 4,
+      "title": "corn",
       "completed": false
     },
     {
       "id": 3,
-      "title": "Buy Milk",
-      "completed": false
-    },
-    {
-      "id": 13,
-      "title": "call mom",
+      "title": "sugar",
       "completed": true
-    },
-    {
-      "id": 7,
-      "title": "eat",
-      "completed": true
-    },
-    {
-      "id": 1,
-      "title": "Buy groceries",
-      "completed": true
-    },
-    {
-      "id": 2,
-      "title": "walk the dogs",
-      "completed": true
-    },
-    {
-      "id": 9,
-      "title": "haircut at 10am",
-      "completed": true
-    },
-    {
-      "id": 14,
-      "title": "socks",
-      "completed": false
     }
   ]
 }

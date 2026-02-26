@@ -2,8 +2,14 @@ import "dotenv/config";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("colors");
 import { z } from "zod";
-import { Agent, run, tool } from "@openai/agents";
+import { Agent, addTraceProcessor, Runner, run, setTracingDisabled, tool } from "@openai/agents";
 import { chatBubble, createPromptInput } from "./terminal-components";
+import { createChatTraceProcessor, ensureThinkingRemoved, setClearThinking } from "./tracing/chat-trace-processor";
+
+// trace tool calls and major events in chat (force on; SDK disables when NODE_ENV=test)
+setTracingDisabled(false);
+addTraceProcessor(createChatTraceProcessor());
+const runner = new Runner({ tracingDisabled: false });
 import { StateService, TodoService } from "./services";
 import { DEFAULT_APP_STATE } from "./types";
 
@@ -20,7 +26,7 @@ const addTodoTool = tool({
   name: "add_todo",
   description: `Add an item to the todo list.
 Use when the user says: "add X", "create X", "new task X", etc.
-Returns "Added: {item}" on success, "warning: Item already exists." if duplicate.`,
+IMPORTANT: Call ONCE PER ITEM. For "add rice cereal milk" make 3 separate calls with item "rice", "cereal", "milk". Never pass multiple items in one call.`,
   parameters: z.object({ item: z.string() }),
   execute: async ({ item }) => todoService.add(item),
 });
@@ -30,8 +36,8 @@ const removeTaskTool = tool({
   name: "remove_task",
   description: `Remove or clear a task from the list. Marks it complete (does not delete).
 Use when the user says: "remove X", "clear X", "delete X", "get rid of X".
-Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".
-Returns "Completed: {title}" on success, "Error: Task not found." if not found.`,
+IMPORTANT: Call this tool ONCE PER ITEM. For "remove rice milk and sugar" make 3 separate calls: remove_task("rice"), remove_task("milk"), remove_task("sugar"). Never pass multiple items in one call.
+Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".`,
   parameters: z.object({ idOrTitle: z.union([z.number(), z.string()]) }),
   execute: async ({ idOrTitle }) => todoService.complete(idOrTitle),
 });
@@ -41,8 +47,8 @@ const completeTaskTool = tool({
   name: "complete_task",
   description: `Mark a task as done/complete.
 Use when the user says: "complete X", "finish X", "done with X", "mark X done".
-Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".
-Returns "Completed: {title}" on success, "Error: Task not found." if not found.`,
+IMPORTANT: Call this tool ONCE PER ITEM. For "complete rice milk sugar" make 3 separate calls. Never pass multiple items in one call.
+Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".`,
   parameters: z.object({ idOrTitle: z.union([z.number(), z.string()]) }),
   execute: async ({ idOrTitle }) => todoService.complete(idOrTitle),
 });
@@ -54,6 +60,7 @@ const listTodosTool = tool({
 Use when the user wants raw data.`,
   parameters: z.object({}),
   execute: async () => JSON.stringify(todoService.list(), null, 2),
+  
 });
 
 // format_list — returns formatted display string. ■ = open, ✅ = complete. reliable, deterministic.
@@ -71,15 +78,35 @@ Use when the user says: "list", "show my tasks", "what's on my list", "display t
 /* =================================
   AGENT: Todo List Assistant
 ================================= */
+const STOP_AT_TOOLS = ["add_todo", "remove_task", "complete_task", "list_todos", "format_list"];
+
+/** Use LAST matching tool output so all parallel tool calls finish before we return. */
+function toolUseBehavior(
+  _context: unknown,
+  toolResults: Array<{ type: string; tool: { name: string }; output?: unknown }>
+) {
+  const outputs = toolResults.filter(
+    (r) => r.type === "function_output" && STOP_AT_TOOLS.includes(r.tool.name)
+  );
+  const last = outputs[outputs.length - 1];
+  if (last) {
+    const out = (last as { output?: unknown }).output;
+    return { isFinalOutput: true as const, isInterrupted: undefined, finalOutput: String(out ?? "") };
+  }
+  return { isFinalOutput: false as const, isInterrupted: undefined };
+}
+
 // create agent
 const agent = new Agent({
   name: "Todo List Assistant",
   instructions: `You are my helpful assistant. Help manage tasks using the tools.
-Only claim success when a tool actually returns success. Prefer format_list over list_todos for display.`,
+Only claim success when a tool actually returns success. Prefer format_list over list_todos for display.
+
+When the user asks to add, remove, or complete MULTIPLE items (e.g. "add rice cereal milk" or "remove rice milk and sugar"):
+- Call add_todo, remove_task, or complete_task SEPARATELY for EACH item.
+- Never combine multiple items in one tool call (e.g. never pass "rice milk" as a single idOrTitle).`,
   tools: [addTodoTool, removeTaskTool, completeTaskTool, listTodosTool, formatListTool],
-  toolUseBehavior: {
-    stopAtToolNames: ["add_todo", "remove_task", "complete_task", "list_todos", "format_list"],
-  },
+  toolUseBehavior,
 });
 
 
@@ -114,14 +141,14 @@ function prompt(): void {
 
     // run agent (catch errors)
     try {
-      // add "thinking" bubble
       const { remove } = chatBubble("Thinking...", "loading");
+      setClearThinking(remove ?? null);
 
-      // run agent
-      const result = await run(agent, message);
+      // run agent (use runner with tracing enabled so trace bubbles show)
+      const result = await runner.run(agent, message);
 
-      // remove "thinking" bubble
-      if (remove) remove();
+      // remove Thinking if trace never fired (trace removes it on first event)
+      ensureThinkingRemoved();
 
       // test error
       if (isErrorTest) throw new Error("Test error");
@@ -129,7 +156,7 @@ function prompt(): void {
       // add "assistant" response
       chatBubble(result.finalOutput || "", "assistant");
     } catch (err) {
-      // add "error" response
+      ensureThinkingRemoved();
       chatBubble("Error: " + err.message, "error");
     }
     prompt();

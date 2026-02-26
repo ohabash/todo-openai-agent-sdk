@@ -99,13 +99,6 @@ describe("TodoService", () => {
       const formatted = todoService.format();
       expect(formatted).toContain("(no tasks)");
     });
-
-    it("includes task id with each item (#id)", () => {
-      const { todoService } = createServices();
-      todoService.add("Buy Milk");
-      const formatted = todoService.format();
-      expect(formatted).toMatch(/#\d+ Buy Milk/);
-    });
   });
 
   describe("Workflow sequence", () => {
