@@ -11,14 +11,24 @@
   ],
   "todos": [
     {
-      "id": 2,
-      "title": "milk",
-      "completed": false
+      "id": 3,
+      "title": "sugar",
+      "completed": true
     },
     {
-      "id": 1,
-      "title": "rice",
-      "completed": false
+      "id": 5,
+      "title": "grapes",
+      "completed": true
+    },
+    {
+      "id": 6,
+      "title": "pizza",
+      "completed": true
+    },
+    {
+      "id": 4,
+      "title": "corn",
+      "completed": true
     },
     {
       "id": 9,
@@ -36,23 +46,13 @@
       "completed": true
     },
     {
-      "id": 4,
-      "title": "corn",
+      "id": 2,
+      "title": "milk",
       "completed": true
     },
     {
-      "id": 6,
-      "title": "pizza",
-      "completed": true
-    },
-    {
-      "id": 5,
-      "title": "grapes",
-      "completed": true
-    },
-    {
-      "id": 3,
-      "title": "sugar",
+      "id": 1,
+      "title": "rice",
       "completed": true
     }
   ]
