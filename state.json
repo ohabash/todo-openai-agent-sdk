@@ -36,14 +36,54 @@
       "completed": false
     },
     {
-      "id": 2,
-      "title": "milk",
-      "completed": true
-    },
-    {
       "id": 27,
       "title": "vanilla extract",
       "completed": false
+    },
+    {
+      "id": 28,
+      "title": "artisan bread",
+      "completed": false
+    },
+    {
+      "id": 29,
+      "title": "cheese (aged cheddar, Gruyère, fontina, or havarti)",
+      "completed": false
+    },
+    {
+      "id": 30,
+      "title": "caramelized onions",
+      "completed": false
+    },
+    {
+      "id": 31,
+      "title": "sliced tomatoes",
+      "completed": false
+    },
+    {
+      "id": 32,
+      "title": "fresh spinach",
+      "completed": false
+    },
+    {
+      "id": 33,
+      "title": "crispy bacon",
+      "completed": false
+    },
+    {
+      "id": 34,
+      "title": "sautéed mushrooms",
+      "completed": false
+    },
+    {
+      "id": 35,
+      "title": "pesto spread",
+      "completed": false
+    },
+    {
+      "id": 2,
+      "title": "milk",
+      "completed": true
     },
     {
       "id": 9,
@@ -144,6 +184,11 @@
       "id": 11,
       "title": "shopping",
       "completed": true
+    },
+    {
+      "id": 36,
+      "title": "apple slices",
+      "completed": false
     }
   ]
 }

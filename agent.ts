@@ -2,7 +2,7 @@ import "dotenv/config";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("colors");
 import { z } from "zod";
-import { Agent, addTraceProcessor, Runner, run, setTracingDisabled, tool } from "@openai/agents";
+import { Agent, addTraceProcessor, Runner, assistant, setTracingDisabled, tool, user } from "@openai/agents";
 import { chatBubble, createPromptInput } from "./terminal-components";
 import { createChatTraceProcessor, ensureThinkingRemoved, setClearThinking } from "./tracing/chat-trace-processor";
 
@@ -147,6 +147,8 @@ If the user refers to a known group, category, or concept (e.g. "ingredients for
 // create prompt input
 const promptInput = createPromptInput();
 
+const history: (ReturnType<typeof user> | ReturnType<typeof assistant>)[] = [];
+
 // cycle prompt
 function prompt(): void {
   promptInput.question(async (input) => {
@@ -172,8 +174,9 @@ function prompt(): void {
       const { remove } = chatBubble("Thinking...", "loading");
       setClearThinking(remove ?? null);
 
-      // run agent (use runner with tracing enabled so trace bubbles show)
-      const result = await runner.run(agent, message);
+      history.push(user(message));
+      const result = await runner.run(agent, history);
+      history.push(assistant(result.finalOutput || ""));
 
       // remove Thinking if trace never fired (trace removes it on first event)
       ensureThinkingRemoved();
@@ -185,6 +188,7 @@ function prompt(): void {
       chatBubble(result.finalOutput || "", "assistant");
     } catch (err) {
       ensureThinkingRemoved();
+      if (history.length) history.pop();
       chatBubble("Error: " + err.message, "error");
     }
     prompt();
