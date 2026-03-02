@@ -11,183 +11,43 @@
   ],
   "todos": [
     {
-      "id": 23,
-      "title": "flour",
-      "completed": false
-    },
-    {
-      "id": 3,
-      "title": "sugar",
-      "completed": false
-    },
-    {
-      "id": 24,
-      "title": "eggs",
-      "completed": false
-    },
-    {
-      "id": 25,
-      "title": "butter",
-      "completed": false
-    },
-    {
-      "id": 26,
-      "title": "baking powder",
-      "completed": false
-    },
-    {
-      "id": 27,
-      "title": "vanilla extract",
-      "completed": false
-    },
-    {
-      "id": 28,
-      "title": "artisan bread",
-      "completed": false
-    },
-    {
-      "id": 29,
-      "title": "cheese (aged cheddar, Gruyère, fontina, or havarti)",
-      "completed": false
-    },
-    {
-      "id": 30,
-      "title": "caramelized onions",
-      "completed": false
-    },
-    {
-      "id": 31,
-      "title": "sliced tomatoes",
-      "completed": false
-    },
-    {
-      "id": 32,
-      "title": "fresh spinach",
-      "completed": false
-    },
-    {
-      "id": 33,
-      "title": "crispy bacon",
-      "completed": false
-    },
-    {
-      "id": 34,
-      "title": "sautéed mushrooms",
-      "completed": false
-    },
-    {
-      "id": 35,
-      "title": "pesto spread",
+      "id": 1,
+      "title": "$3.25 flour",
       "completed": false
     },
     {
       "id": 2,
-      "title": "milk",
-      "completed": true
+      "title": "$4.10 milk",
+      "completed": false
     },
     {
-      "id": 9,
-      "title": "blue",
-      "completed": true
-    },
-    {
-      "id": 8,
-      "title": "white",
-      "completed": true
-    },
-    {
-      "id": 7,
-      "title": "red",
-      "completed": true
-    },
-    {
-      "id": 14,
-      "title": "ground beef",
-      "completed": true
-    },
-    {
-      "id": 15,
-      "title": "onion",
-      "completed": true
-    },
-    {
-      "id": 16,
-      "title": "garlic",
-      "completed": true
-    },
-    {
-      "id": 17,
-      "title": "tomato sauce",
-      "completed": true
-    },
-    {
-      "id": 18,
-      "title": "kidney beans",
-      "completed": true
-    },
-    {
-      "id": 19,
-      "title": "chili powder",
-      "completed": true
-    },
-    {
-      "id": 20,
-      "title": "cumin",
-      "completed": true
-    },
-    {
-      "id": 21,
-      "title": "salt",
-      "completed": true
-    },
-    {
-      "id": 22,
-      "title": "pepper",
-      "completed": true
-    },
-    {
-      "id": 5,
-      "title": "grapes",
-      "completed": true
-    },
-    {
-      "id": 10,
-      "title": "popcorn",
-      "completed": true
-    },
-    {
-      "id": 6,
-      "title": "pizza",
-      "completed": true
+      "id": 3,
+      "title": "$2.68 eggs",
+      "completed": false
     },
     {
       "id": 4,
-      "title": "corn",
-      "completed": true
+      "title": "$1.99 sugar",
+      "completed": false
     },
     {
-      "id": 1,
-      "title": "rice",
-      "completed": true
+      "id": 5,
+      "title": "$2.50 baking powder",
+      "completed": false
     },
     {
-      "id": 13,
-      "title": "paper",
-      "completed": true
+      "id": 6,
+      "title": "$0.89 salt",
+      "completed": false
     },
     {
-      "id": 12,
-      "title": "paint",
-      "completed": true
+      "id": 7,
+      "title": "$3.70 butter",
+      "completed": false
     },
     {
-      "id": 11,
-      "title": "shopping",
-      "completed": true
-    },
-    {
-      "id": 36,
-      "title": "apple slices",
+      "id": 8,
+      "title": "$5.00 vanilla extract",
       "completed": false
     }
   ]

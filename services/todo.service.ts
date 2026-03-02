@@ -96,6 +96,19 @@ export class TodoService {
     return `Completed: ${todo.title}\n\n${this.format()}`;
   }
 
+  // permanently remove from list. fuzzy match like complete.
+  delete(idOrTitle: number | string): string {
+    const todos = this.get();
+    const result = findTodoByIdOrTitle(todos, idOrTitle);
+
+    if (result.error) return result.error;
+    if (!result.todo) return "Error: Task not found.";
+
+    const title = result.todo.title;
+    this.stateService.update({ todos: todos.filter((t) => t.id !== result.todo!.id) });
+    return `Deleted: ${title}\n\n${this.format()}`;
+  }
+
   // reactivate: set completed=false. fuzzy match like complete.
   reactivate(idOrTitle: number | string): string {
     const todos = this.get();

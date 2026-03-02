@@ -2,7 +2,7 @@ import "dotenv/config";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("colors");
 import { z } from "zod";
-import { Agent, addTraceProcessor, Runner, assistant, setTracingDisabled, tool, user } from "@openai/agents";
+import { Agent, addTraceProcessor, Runner, assistant, setTracingDisabled, tool, user, AgentInputItem } from "@openai/agents";
 import { chatBubble, createPromptInput } from "./terminal-components";
 import { createChatTraceProcessor, ensureThinkingRemoved, setClearThinking } from "./tracing/chat-trace-processor";
 
@@ -34,23 +34,21 @@ IMPORTANT: For "add rice cereal milk" make 3 separate calls with item "rice", "c
   execute: async ({ item }) => todoService.add(item),
 });
 
-// remove_task — marks task complete (same behavior, different name for "remove" / "clear" requests)
+// remove_task — marks task complete. Trigger: "remove", "complete", "clear"
 const removeTaskTool = tool({
   name: "remove_task",
-  description: `Remove or clear a task from the list. Marks it complete (does not delete).
-Use when the user says: "remove X", "clear X", "delete X", "get rid of X".
-IMPORTANT:  For "remove rice milk and sugar" make 3 separate calls: remove_task("rice"), remove_task("milk"), remove_task("sugar"). Never pass multiple items in one call.
+  description: `Mark a task complete (does not delete). Use when the user says: "remove X", "complete X", "clear X", "get rid of X".
+IMPORTANT: For "remove rice milk and sugar" make 3 separate calls. Never pass multiple items in one call.
 Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".`,
   parameters: z.object({ idOrTitle: z.union([z.number(), z.string()]) }),
   execute: async ({ idOrTitle }) => todoService.complete(idOrTitle),
 });
 
-// complete_task — marks task complete (for "done" / "complete" / "finish" requests)
+// complete_task — marks task complete. Trigger: "done", "finish"
 const completeTaskTool = tool({
   name: "complete_task",
-  description: `Mark a task as done/complete.
-Use when the user says: "complete X", "finish X", "done with X", "mark X done".
-IMPORTANT:  For "complete rice milk sugar" make 3 separate calls. Never pass multiple items in one call.
+  description: `Mark a task as done/complete. Use when the user says: "finish X", "done with X", "mark X done".
+IMPORTANT: For multiple items make separate calls. Never pass multiple items in one call.
 Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".`,
   parameters: z.object({ idOrTitle: z.union([z.number(), z.string()]) }),
   execute: async ({ idOrTitle }) => todoService.complete(idOrTitle),
@@ -75,6 +73,16 @@ Use when the user says: "list", "show my tasks", "what's on my list", "display t
   execute: async () => todoService.format(),
 });
 
+// delete_task — permanently remove. Trigger: "delete" only
+const deleteTaskTool = tool({
+  name: "delete_task",
+  description: `Permanently delete a task from the list. Use ONLY when the user says "delete X".
+Do NOT use for remove/complete/clear — use remove_task or complete_task instead.
+Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".`,
+  parameters: z.object({ idOrTitle: z.union([z.number(), z.string()]) }),
+  execute: async ({ idOrTitle }) => todoService.delete(idOrTitle),
+});
+
 // reactivate_task — set completed task back to open
 const reactivateTaskTool = tool({
   name: "reactivate_task",
@@ -92,7 +100,7 @@ IMPORTANT: Call ONCE PER ITEM for multiple items.`,
 /* =================================
   AGENT: Todo List Assistant
 ================================= */
-const STOP_AT_TOOLS = ["add_todo", "remove_task", "complete_task", "list_todos", "format_list"];
+const STOP_AT_TOOLS = ["add_todo", "remove_task", "complete_task", "delete_task", "list_todos", "format_list"];
 
 /** Use LAST matching tool output so all parallel tool calls finish before we return. */
 function toolUseBehavior(_context, toolResults) {
@@ -130,6 +138,7 @@ If the user refers to a known group, category, or concept (e.g. "ingredients for
     addTodoTool,
     removeTaskTool,
     completeTaskTool,
+    deleteTaskTool,
     reactivateTaskTool,
     listTodosTool,
     formatListTool,
@@ -147,7 +156,7 @@ If the user refers to a known group, category, or concept (e.g. "ingredients for
 // create prompt input
 const promptInput = createPromptInput();
 
-const history: (ReturnType<typeof user> | ReturnType<typeof assistant>)[] = [];
+let thread: AgentInputItem[] = [];
 
 // cycle prompt
 function prompt(): void {
@@ -174,9 +183,8 @@ function prompt(): void {
       const { remove } = chatBubble("Thinking...", "loading");
       setClearThinking(remove ?? null);
 
-      history.push(user(message));
-      const result = await runner.run(agent, history);
-      history.push(assistant(result.finalOutput || ""));
+      const result = await runner.run(agent, thread.concat({ role: 'user', content: message }));
+      thread = result.history;
 
       // remove Thinking if trace never fired (trace removes it on first event)
       ensureThinkingRemoved();
@@ -188,7 +196,6 @@ function prompt(): void {
       chatBubble(result.finalOutput || "", "assistant");
     } catch (err) {
       ensureThinkingRemoved();
-      if (history.length) history.pop();
       chatBubble("Error: " + err.message, "error");
     }
     prompt();

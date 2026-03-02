@@ -11,6 +11,7 @@ CLI todo list assistant powered by OpenAI Agents.
 - **Reactivate** — undo completed tasks (e.g. "reactivate all food items")
 - **List** — show tasks with open (⬜) and completed (✅) status
 - **Batch by category** — "complete all", "reactivate all colors", "only baking items should be active"
+- **Transform / rename** — "rename each item with a random dollar amount prepended to the start of the task"
 
 ## Setup
 
