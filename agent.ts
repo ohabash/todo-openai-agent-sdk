@@ -29,7 +29,7 @@ const addTodoTool = tool({
   name: "add_todo",
   description: `Add an item to the todo list.
 Use when the user says: "add X", "create X", "new task X", etc.
-IMPORTANT: Call ONCE PER ITEM. For "add rice cereal milk" make 3 separate calls with item "rice", "cereal", "milk". Never pass multiple items in one call.`,
+IMPORTANT: For "add rice cereal milk" make 3 separate calls with item "rice", "cereal", "milk". Never pass multiple items in one call.`,
   parameters: z.object({ item: z.string() }),
   execute: async ({ item }) => todoService.add(item),
 });
@@ -39,7 +39,7 @@ const removeTaskTool = tool({
   name: "remove_task",
   description: `Remove or clear a task from the list. Marks it complete (does not delete).
 Use when the user says: "remove X", "clear X", "delete X", "get rid of X".
-IMPORTANT: Call this tool ONCE PER ITEM. For "remove rice milk and sugar" make 3 separate calls: remove_task("rice"), remove_task("milk"), remove_task("sugar"). Never pass multiple items in one call.
+IMPORTANT:  For "remove rice milk and sugar" make 3 separate calls: remove_task("rice"), remove_task("milk"), remove_task("sugar"). Never pass multiple items in one call.
 Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".`,
   parameters: z.object({ idOrTitle: z.union([z.number(), z.string()]) }),
   execute: async ({ idOrTitle }) => todoService.complete(idOrTitle),
@@ -50,7 +50,7 @@ const completeTaskTool = tool({
   name: "complete_task",
   description: `Mark a task as done/complete.
 Use when the user says: "complete X", "finish X", "done with X", "mark X done".
-IMPORTANT: Call this tool ONCE PER ITEM. For "complete rice milk sugar" make 3 separate calls. Never pass multiple items in one call.
+IMPORTANT:  For "complete rice milk sugar" make 3 separate calls. Never pass multiple items in one call.
 Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".`,
   parameters: z.object({ idOrTitle: z.union([z.number(), z.string()]) }),
   execute: async ({ idOrTitle }) => todoService.complete(idOrTitle),
@@ -75,6 +75,17 @@ Use when the user says: "list", "show my tasks", "what's on my list", "display t
   execute: async () => todoService.format(),
 });
 
+// reactivate_task — set completed task back to open
+const reactivateTaskTool = tool({
+  name: "reactivate_task",
+  description: `Reactivate a completed task (set it back to open/not done).
+Use when the user says: "reactivate X", "undo X", "reopen X", "mark X open again", etc.
+Accepts task ID (number) or title (string). Fuzzy: "haircut" matches "haircut at 10am".
+IMPORTANT: Call ONCE PER ITEM for multiple items.`,
+  parameters: z.object({ idOrTitle: z.union([z.number(), z.string()]) }),
+  execute: async ({ idOrTitle }) => todoService.reactivate(idOrTitle),
+});
+
 
 
 
@@ -84,19 +95,21 @@ Use when the user says: "list", "show my tasks", "what's on my list", "display t
 const STOP_AT_TOOLS = ["add_todo", "remove_task", "complete_task", "list_todos", "format_list"];
 
 /** Use LAST matching tool output so all parallel tool calls finish before we return. */
-function toolUseBehavior(
-  _context: unknown,
-  toolResults: Array<{ type: string; tool: { name: string }; output?: unknown }>
-) {
-  const outputs = toolResults.filter(
-    (r) => r.type === "function_output" && STOP_AT_TOOLS.includes(r.tool.name)
-  );
-  const last = outputs[outputs.length - 1];
-  if (last) {
-    const out = (last as { output?: unknown }).output;
-    return { isFinalOutput: true as const, isInterrupted: undefined, finalOutput: String(out ?? "") };
+function toolUseBehavior(_context, toolResults) {
+  const last = toolResults[toolResults.length - 1];
+
+  if (!last) return { isFinalOutput: false };
+
+  // Only stop if last tool was format_list
+  if (last.tool.name === "format_list") {
+    return {
+      isFinalOutput: true,
+      finalOutput: String(last.output ?? ""),
+    };
   }
-  return { isFinalOutput: false as const, isInterrupted: undefined };
+
+  // Otherwise allow the agent to continue reasoning
+  return { isFinalOutput: false };
 }
 
 // create agent
@@ -105,10 +118,22 @@ const agent = new Agent({
   instructions: `You are my helpful assistant. Help manage tasks using the tools.
 Only claim success when a tool actually returns success. Prefer format_list over list_todos for display.
 
-When the user asks to add, remove, or complete MULTIPLE items (e.g. "add rice cereal milk" or "remove rice milk and sugar"):
-- Call add_todo, remove_task, or complete_task SEPARATELY for EACH item.
-- Never combine multiple items in one tool call (e.g. never pass "rice milk" as a single idOrTitle).`,
-  tools: [addTodoTool, removeTaskTool, completeTaskTool, listTodosTool, formatListTool],
+When the user asks to add, remove, complete, or reactivate MULTIPLE items:
+- Call add_todo, remove_task, complete_task, or reactivate_task SEPARATELY for EACH item.
+- Never combine multiple items in one tool call (e.g. never pass "rice milk" as a single idOrTitle).
+If the user refers to a known group, category, or concept (e.g. "ingredients for chili", "groceries for tacos", "packing list for camping"):
+- Infer a reasonable list of concrete items.
+- Then call add_todo separately for each inferred item.
+- Do not ask for clarification unless the request is truly ambiguous.
+`,
+  tools: [
+    addTodoTool,
+    removeTaskTool,
+    completeTaskTool,
+    reactivateTaskTool,
+    listTodosTool,
+    formatListTool,
+  ],
   toolUseBehavior,
 });
 

@@ -147,4 +147,21 @@ describe("TodoService", () => {
       expect(res).toContain("Multiple matches");
     });
   });
+
+  describe("reactivate", () => {
+    it("sets completed task back to open", () => {
+      const { todoService } = createServices();
+      todoService.add("Buy Milk");
+      todoService.complete("Buy Milk");
+      const res = todoService.reactivate("Buy Milk");
+      expect(res).toContain("Reactivated: Buy Milk");
+      expect(todoService.get().find((t) => t.title === "Buy Milk")?.completed).toBe(false);
+    });
+
+    it("returns error when not found", () => {
+      const { todoService } = createServices();
+      const res = todoService.reactivate("xyz");
+      expect(res).toBe("Error: Task not found.");
+    });
+  });
 });

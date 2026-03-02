@@ -9,6 +9,7 @@ const TOOL_SUMMARIES: Record<string, string> = {
   add_todo: "adding item",
   remove_task: "removing task",
   complete_task: "completing task",
+  reactivate_task: "reactivating task",
   list_todos: "listing tasks",
   format_list: "formatting list",
 };

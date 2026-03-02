@@ -95,4 +95,18 @@ export class TodoService {
     this.stateService.update({ todos: [...todos] });
     return `Completed: ${todo.title}\n\n${this.format()}`;
   }
+
+  // reactivate: set completed=false. fuzzy match like complete.
+  reactivate(idOrTitle: number | string): string {
+    const todos = this.get();
+    const result = findTodoByIdOrTitle(todos, idOrTitle);
+
+    if (result.error) return result.error;
+    if (!result.todo) return "Error: Task not found.";
+
+    const todo = result.todo;
+    todo.completed = false;
+    this.stateService.update({ todos: [...todos] });
+    return `Reactivated: ${todo.title}\n\n${this.format()}`;
+  }
 }

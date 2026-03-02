@@ -4,6 +4,14 @@
 
 CLI todo list assistant powered by OpenAI Agents.
 
+## Use cases
+
+- **Add** — single items, multiple items, or inferred lists (e.g. "add ingredients for baking a cake")
+- **Complete / remove** — mark tasks done, one at a time or "complete all"
+- **Reactivate** — undo completed tasks (e.g. "reactivate all food items")
+- **List** — show tasks with open (⬜) and completed (✅) status
+- **Batch by category** — "complete all", "reactivate all colors", "only baking items should be active"
+
 ## Setup
 
 Create a `.env` file with your OpenAI API key:
